@@ -7,20 +7,21 @@ from math import sqrt
 import time
 import thread
 
-address = ('192.168.199.217',9999)
+address = (socket.gethostbyname(socket.gethostname()),9999)
 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 s.bind(address)
 
 print address[0],'listen at port',address[1]
 
 fig, ax = plt.subplots()
-X = np.arange(0,1,0.01)
+X = np.arange(0,1,0.001)
 Y1 = np.zeros(len(X))
 Y2 = np.zeros(len(X))
 Y3 = np.zeros(len(X))
-line1,line2,line3, = ax.plot(X,Y1,'r',X,Y2,'g',X,Y3,'b')
-plt.ylim(-30,30)
-
+Y4 = np.zeros(len(X))
+line1,line2,line3,line4, = ax.plot(X,Y1,'r',X,Y2,'g',X,Y3,'b',X,Y4,'k')
+plt.ylim(-20,20)
+N = len(X)
 
 def timer():
 	while True:
@@ -35,16 +36,20 @@ def timer():
 		#print sqrt(float(tmp[2])*float(tmp[2])+float(tmp[3])*float(tmp[3])+float(tmp[4])*float(tmp[4]))
 		
 		for i in range(0,len(tmp)):
-			if int(float(tmp[i]))== 3 and i<len(tmp)-3:
+			if int(float(tmp[i]))== 82 and i<len(tmp)-3:
 				#y = sqrt(float(tmp[i+1])*float(tmp[i+1])+float(tmp[i+2])*float(tmp[i+2])+float(tmp[i+3])*float(tmp[i+3]))
 				y = float(tmp[i+1])
-				Y1[0:99] = Y1[1:100]
-				Y2[0:99] = Y2[1:100]
-				Y3[0:99] = Y3[1:100]
+				Y1[0:N-1] = Y1[1:N]
+				Y2[0:N-1] = Y2[1:N]
+				Y3[0:N-1] = Y3[1:N]
+				Y4[0:N-1] = Y4[1:N]
 				Y1[-1] = float(tmp[i+1])
 				Y2[-1] = float(tmp[i+2])
 				Y3[-1] = float(tmp[i+3])
-				print float(tmp[i+1]),float(tmp[i+2]),float(tmp[i+3])
+				Y4[-1] = sqrt(Y1[-1]**2+Y2[-1]**2+Y3[-1]**2)
+				#print y
+				#time.sleep(1)
+				#print float(tmp[i+1]),float(tmp[i+2]),float(tmp[i+3])
 		
 		
 		#print Y1,Y2,Y3
@@ -58,36 +63,19 @@ def animate(i):
 	line1.set_ydata(Y1)
 	line2.set_ydata(Y2)
 	line3.set_ydata(Y3)
-	return line1,line2,line3,
+	line4.set_ydata(Y4)
+	return line1,line2,line3,line4,
 def init():
-	line1.set_ydata(Y1)
-	line2.set_ydata(Y2)
-	line3.set_ydata(Y3)
-	return line1,line2,line3,
+	mY = np.ma.array(X, mask = True)
+	line1.set_ydata(mY)
+	line2.set_ydata(mY)
+	line3.set_ydata(mY)
+	line4.set_ydata(mY)
+	return line1,line2,line3,line4,
 
 ani = animation.FuncAnimation(fig, animate, init_func=init,
-	interval=50, blit=True)
+	interval=20, blit=True)
 plt.show()
 
-while True:
-	data, addr = s.recvfrom(2048)
-	if not data:
-		print "client has exist"
-		break
-	
-	#tmp = data.split(',')
-	print data
-	#print sqrt(float(tmp[2])*float(tmp[2])+float(tmp[3])*float(tmp[3])+float(tmp[4])*float(tmp[4]))
-	
-
-	#y = sqrt(float(tmp[2])*float(tmp[2])+float(tmp[3])*float(tmp[3])+float(tmp[4])*float(tmp[4]))
-	
-	#Y[0:len(Y)-2] = Y[1:len(Y)-1]
-	#Y[-1] = y
-	#print y
-	#line.set_xdata(X)
-	#line.set_ydata(Y)
-	#draw()
-	#time.sleep(5)
 s.close()
 
